@@ -151,10 +151,10 @@ def calculate_psi(expected, actual, bins=10):
     return float(psi)
 
 
-def classify_drift(score, auto_threshold):
-    if score > auto_threshold * 1.5 or score > 0.25:
+def classify_drift(score, threshold):
+    if score > threshold * 1.5:
         return "High Drift"
-    elif score > auto_threshold or score > 0.10:
+    elif score > threshold:
         return "Moderate Drift"
     else:
         return "Low Drift"
