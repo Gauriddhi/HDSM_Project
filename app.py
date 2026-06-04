@@ -151,10 +151,10 @@ def calculate_psi(expected, actual, bins=10):
     return float(psi)
 
 
-def classify_drift(score, threshold):
-    if score > threshold * 1.5:
+def classify_drift(score, auto_threshold):
+    if score > auto_threshold * 1.5 or score > 0.25:
         return "High Drift"
-    elif score > threshold:
+    elif score > auto_threshold or score > 0.10:
         return "Moderate Drift"
     else:
         return "Low Drift"
@@ -813,127 +813,153 @@ with tab2:
 
 
 # =========================================================
-# TAB 3 — CDC HEALTHCARE LIVE DATA
+# TAB 3 — HEALTHCARE DATA (Synthetic Patient Simulation)
 # =========================================================
 
 with tab3:
 
-    st.markdown("### Live Healthcare Data — CDC Open Data API")
+    st.markdown("### Healthcare Patient Data — Drift Simulation")
     st.caption(
-        "Fetches real US public health statistics from the CDC. "
-        "Free, no API key needed. "
-        "Demonstrates healthcare domain drift detection."
+        "Generates realistic synthetic patient data with controlled drift. "
+        "Real patient APIs require hospital credentials due to privacy laws (HIPAA/DPDP). "
+        "Synthetic simulation is the standard approach in healthcare ML research."
     )
 
-    cdc_datasets = {
-        "Diabetes & Obesity by State":        ("tcmp-75zb", "Prevalence of obesity and diabetes across US states over time"),
-        "COVID-19 Vaccination Coverage":      ("unsk-b7fc", "Vaccination rates by state, week, and demographic group"),
-        "Chronic Disease Indicators":         ("g4ie-h725", "Asthma, cancer, cardiovascular disease, diabetes prevalence"),
-        "Heart Disease Mortality by State":   ("i2vk-mgdh", "Heart disease and stroke death rates by state and year"),
-        "Flu Vaccination Coverage":           ("vh55-3he6", "Influenza vaccination rates by season and age group"),
+    st.info(
+        "**How it works:** Generates two patient populations — "
+        "a STABLE baseline (normal patients) and a DRIFTED stream "
+        "(patients with changed health profiles, e.g. post-COVID population shift). "
+        "HDSM detects when the incoming population differs from the historical baseline."
+    )
+
+    hc_scenarios = {
+        "Diabetes Progression (glucose drift)": {
+            "desc": "Models a patient population where glucose and insulin levels rise over time — simulating a hospital whose patient mix is shifting toward more diabetic cases.",
+            "stable":  {"glucose": (100,15), "blood_pressure": (80,10),  "bmi": (26,4),  "age": (40,12), "insulin": (80,20)},
+            "drifted": {"glucose": (155,25), "blood_pressure": (98,15),  "bmi": (34,6),  "age": (58,10), "insulin": (190,45)},
+            "target":  "glucose",
+        },
+        "Post-COVID Patient Shift": {
+            "desc": "Models pre-COVID vs post-COVID patient profiles — older patients, higher BMI, elevated blood pressure arriving at the hospital.",
+            "stable":  {"glucose": (95,12),  "blood_pressure": (75,8),   "bmi": (24,3),  "age": (35,10), "insulin": (75,18)},
+            "drifted": {"glucose": (118,20), "blood_pressure": (95,14),  "bmi": (32,5),  "age": (62,12), "insulin": (140,35)},
+            "target":  "blood_pressure",
+        },
+        "Cardiac Risk Population Change": {
+            "desc": "Models a shift in cardiac patient demographics — rising age and blood pressure indicate an aging patient population.",
+            "stable":  {"glucose": (98,14),  "blood_pressure": (78,9),   "bmi": (25,4),  "age": (38,11), "insulin": (78,22)},
+            "drifted": {"glucose": (125,22), "blood_pressure": (108,18), "bmi": (31,5),  "age": (65,11), "insulin": (155,40)},
+            "target":  "blood_pressure",
+        },
+        "Obesity Epidemic Trend": {
+            "desc": "Models a gradual increase in BMI and related markers over time — simulating an insurance company detecting rising obesity claims.",
+            "stable":  {"glucose": (97,13),  "blood_pressure": (79,9),   "bmi": (23,3),  "age": (36,11), "insulin": (76,19)},
+            "drifted": {"glucose": (112,18), "blood_pressure": (90,12),  "bmi": (38,7),  "age": (44,12), "insulin": (165,38)},
+            "target":  "bmi",
+        },
     }
 
-    sel_cdc = st.selectbox(
-        "Choose a healthcare dataset",
-        list(cdc_datasets.keys())
+    sel_scenario = st.selectbox(
+        "Choose a healthcare scenario",
+        list(hc_scenarios.keys())
     )
-    dataset_id, dataset_desc = cdc_datasets[sel_cdc]
-    st.caption(f"Dataset: {dataset_desc}")
 
-    cdc_rows = st.slider("Number of records to fetch", 500, 5000, 2000, 500)
+    scenario = hc_scenarios[sel_scenario]
+    st.caption(scenario["desc"])
 
-    if st.button("Fetch CDC Health Data & Run HDSM", type="primary"):
-        with st.spinner(f"Fetching live CDC data: {sel_cdc}..."):
-            try:
-                url = f"https://data.cdc.gov/resource/{dataset_id}.json?$limit={cdc_rows}"
-                resp = requests.get(url, timeout=20)
+    hc_col1, hc_col2 = st.columns(2)
+    with hc_col1:
+        n_stable  = st.slider("Stable patients (baseline)",  100, 1000, 400, 50)
+    with hc_col2:
+        n_drifted = st.slider("Drifted patients (stream)",   100, 1000, 300, 50)
 
-                if resp.status_code != 200:
-                    st.error(f"CDC API returned error {resp.status_code}. Try a different dataset.")
-                else:
-                    raw_cdc = resp.json()
+    if st.button("Generate Healthcare Data & Run HDSM", type="primary"):
 
-                    if not raw_cdc:
-                        st.error("No data returned. Try a different dataset or increase record count.")
-                    else:
-                        df_cdc = pd.DataFrame(raw_cdc)
+        np.random.seed(42)
 
-                        # Convert numeric columns
-                        for col in df_cdc.columns:
-                            try:
-                                df_cdc[col] = pd.to_numeric(df_cdc[col], errors="ignore")
-                            except Exception:
-                                pass
+        s = scenario["stable"]
+        d = scenario["drifted"]
 
-                        # Keep only numeric columns for drift detection
-                        numeric_cols = df_cdc.select_dtypes(include=[np.number]).columns.tolist()
+        # Generate stable population
+        stable_df = pd.DataFrame({
+            "glucose":        np.random.normal(s["glucose"][0],        s["glucose"][1],        n_stable),
+            "blood_pressure": np.random.normal(s["blood_pressure"][0], s["blood_pressure"][1], n_stable),
+            "bmi":            np.random.normal(s["bmi"][0],            s["bmi"][1],            n_stable),
+            "age":            np.random.normal(s["age"][0],            s["age"][1],            n_stable).clip(18, 90),
+            "insulin":        np.random.normal(s["insulin"][0],        s["insulin"][1],        n_stable).clip(0, 500),
+            "outcome":        np.random.choice([0, 1], n_stable, p=[0.65, 0.35]),
+        })
 
-                        if not numeric_cols:
-                            st.error(
-                                "No numeric columns found in this dataset. "
-                                "Try a different dataset from the dropdown."
-                            )
-                        else:
-                            # Drop mostly-null columns
-                            df_cdc = df_cdc[numeric_cols].dropna(thresh=len(df_cdc)*0.5)
-                            df_cdc = df_cdc.dropna().reset_index(drop=True)
+        # Generate drifted population
+        drifted_df = pd.DataFrame({
+            "glucose":        np.random.normal(d["glucose"][0],        d["glucose"][1],        n_drifted),
+            "blood_pressure": np.random.normal(d["blood_pressure"][0], d["blood_pressure"][1], n_drifted),
+            "bmi":            np.random.normal(d["bmi"][0],            d["bmi"][1],            n_drifted),
+            "age":            np.random.normal(d["age"][0],            d["age"][1],            n_drifted).clip(18, 90),
+            "insulin":        np.random.normal(d["insulin"][0],        d["insulin"][1],        n_drifted).clip(0, 500),
+            "outcome":        np.random.choice([0, 1], n_drifted, p=[0.30, 0.70]),
+        })
 
-                            if len(df_cdc) < 50:
-                                st.error(
-                                    f"Only {len(df_cdc)} clean rows found. "
-                                    "Increase the record count or try another dataset."
-                                )
-                            else:
-                                st.success(
-                                    f"CDC data fetched: **{len(df_cdc)} rows**, "
-                                    f"**{len(numeric_cols)} numeric columns**"
-                                )
-                                st.dataframe(df_cdc.head())
-                                hc1, hc2 = st.columns(2)
-                                hc1.metric("Rows", df_cdc.shape[0])
-                                hc2.metric("Numeric Columns", df_cdc.shape[1])
+        df_health = pd.concat([stable_df, drifted_df], ignore_index=True)
+        df_health = df_health.round(2)
 
-                                # Auto-pick best target column
-                                default_target = numeric_cols[0]
-                                target_col_cdc = st.selectbox(
-                                    "Select target column",
-                                    numeric_cols,
-                                    index=0
-                                )
-                                feature_cdc = st.selectbox(
-                                    "Select feature to monitor for drift",
-                                    [c for c in numeric_cols if c != target_col_cdc],
-                                    index=0
-                                )
+        st.success(
+            f"Healthcare data generated: **{len(df_health)} patient records** "
+            f"({n_stable} stable + {n_drifted} drifted)"
+        )
 
-                                st.info(
-                                    f"Monitoring **{feature_cdc}** for healthcare data drift. "
-                                    "Detects when current disease/health patterns differ from historical baseline."
-                                )
+        # Show comparison table
+        st.markdown("**Population Statistics — Stable vs Drifted:**")
+        compare = pd.DataFrame({
+            "Feature":        ["Glucose",   "Blood Pressure", "BMI",   "Age",   "Insulin"],
+            "Stable Mean":    [round(stable_df["glucose"].mean(),1),  round(stable_df["blood_pressure"].mean(),1),
+                               round(stable_df["bmi"].mean(),1),      round(stable_df["age"].mean(),1),
+                               round(stable_df["insulin"].mean(),1)],
+            "Drifted Mean":   [round(drifted_df["glucose"].mean(),1), round(drifted_df["blood_pressure"].mean(),1),
+                               round(drifted_df["bmi"].mean(),1),     round(drifted_df["age"].mean(),1),
+                               round(drifted_df["insulin"].mean(),1)],
+        })
+        compare["Change"] = compare.apply(
+            lambda r: f"+{round(r['Drifted Mean']-r['Stable Mean'],1)}"
+            if r["Drifted Mean"] >= r["Stable Mean"]
+            else str(round(r["Drifted Mean"]-r["Stable Mean"],1)), axis=1
+        )
+        st.dataframe(compare, use_container_width=True)
 
-                                with st.expander("Manual override — weights and threshold (optional)"):
-                                    st.caption("Leave all at 0 for auto-calibration.")
-                                    ho1, ho2 = st.columns(2)
-                                    with ho1:
-                                        hov_a = st.number_input("Alpha",  0.0, 1.0, 0.0, 0.01, key="ha")
-                                        hov_b = st.number_input("Beta",   0.0, 1.0, 0.0, 0.01, key="hb")
-                                    with ho2:
-                                        hov_g = st.number_input("Gamma",  0.0, 1.0, 0.0, 0.01, key="hg")
-                                        hov_l = st.number_input("Lambda", 0.0, 1.0, 0.0, 0.01, key="hl")
-                                    hov_t = st.number_input("Threshold δ", 0.0, 10.0, 0.0, 0.01, key="ht")
+        st.dataframe(df_health.head())
+        ph1, ph2 = st.columns(2)
+        ph1.metric("Total Patient Records", len(df_health))
+        ph2.metric("Features", df_health.shape[1])
 
-                                run_hdsm(
-                                    df=df_cdc,
-                                    target_col=target_col_cdc,
-                                    monitor_mode="Feature value",
-                                    feature_to_monitor=feature_cdc,
-                                    target_is_classification=False,
-                                    ov_alpha=hov_a, ov_beta=hov_b,
-                                    ov_gamma=hov_g, ov_lam=hov_l, ov_thresh=hov_t,
-                                )
+        target_col_h  = scenario["target"]
+        feature_col_h = scenario["target"]
 
-            except Exception as e:
-                st.error(f"Error fetching CDC data: {e}")
+        st.info(
+            f"Monitoring **{feature_col_h}** for patient population drift. "
+            "HDSM will detect when the drifted population significantly "
+            "differs from the stable baseline."
+        )
+
+        with st.expander("Manual override — weights and threshold (optional)"):
+            st.caption("Leave all at 0 for auto-calibration.")
+            ho1, ho2 = st.columns(2)
+            with ho1:
+                hov_a = st.number_input("Alpha",  0.0, 1.0, 0.0, 0.01, key="ha")
+                hov_b = st.number_input("Beta",   0.0, 1.0, 0.0, 0.01, key="hb")
+            with ho2:
+                hov_g = st.number_input("Gamma",  0.0, 1.0, 0.0, 0.01, key="hg")
+                hov_l = st.number_input("Lambda", 0.0, 1.0, 0.0, 0.01, key="hl")
+            hov_t = st.number_input("Threshold δ", 0.0, 10.0, 0.0, 0.01, key="ht")
+
+        run_hdsm(
+            df=df_health,
+            target_col=target_col_h,
+            monitor_mode="Feature value",
+            feature_to_monitor=feature_col_h,
+            target_is_classification=False,
+            ov_alpha=hov_a, ov_beta=hov_b,
+            ov_gamma=hov_g, ov_lam=hov_l, ov_thresh=hov_t,
+        )
 
 
 # =========================================================
