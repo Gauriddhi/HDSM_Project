@@ -224,7 +224,7 @@ def calibrate_weights(
             actual = wdf[feature_to_monitor].values
             mu_t   = float(np.mean(actual))
         conf_drifts.append(abs(mu_t - mu_0))
-        psi_scores.append(calculate_psi(ref, actual))
+        psi_scores.append(min(calculate_psi(ref, actual), 1.0))
         ks_val, _ = ks_2samp(ref, actual)
         ks_scores.append(ks_val)
         stabilities.append(abs(mu_t - prev_mu))
@@ -270,7 +270,7 @@ def calibrate_threshold(
             actual = wdf[feature_to_monitor].values
             mu_t   = float(np.mean(actual))
         cd    = abs(mu_t - mu_0)
-        psi   = calculate_psi(ref, actual)
+        psi = min(calculate_psi(ref, actual), 1.0)
         ks, _ = ks_2samp(ref, actual)
         stab  = abs(mu_t - prev_mu)
         Dt    = alpha * cd + beta * psi + gamma * ks + lam * stab
@@ -411,7 +411,7 @@ def run_hdsm(df, target_col, monitor_mode, feature_to_monitor,
             mu_t   = float(np.mean(actual))
 
         cd    = abs(mu_t - mu_0)
-        psi   = calculate_psi(expected, actual)
+        psi = min(calculate_psi(expected, actual), 1.0)
         ks, _ = ks_2samp(expected, actual)
         stab  = abs(mu_t - prev_mu)
         D_t   = alpha * cd + beta * psi + gamma * ks + lam * stab
