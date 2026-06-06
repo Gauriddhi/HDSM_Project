@@ -110,15 +110,10 @@ def calculate_psi(expected, actual, bins=10):
     return float(min(psi, 1.0))
 
 
-def classify_drift(score, auto_threshold):
-    """
-    Uses BOTH relative (dataset-specific) AND absolute floors.
-    Relative: compares score to auto-calibrated threshold.
-    Absolute: ensures real drift is never hidden behind a collapsed threshold.
-    """
-    if score > auto_threshold * 1.5 or score > 0.25:
+def classify_drift(score, threshold):
+    if score > threshold * 1.5:
         return "High Drift"
-    elif score > auto_threshold or score > 0.10:
+    elif score > threshold:
         return "Moderate Drift"
     else:
         return "Low Drift"
