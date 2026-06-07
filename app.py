@@ -29,21 +29,31 @@ show_formula = st.sidebar.checkbox("Show HDSM Formula")
 # =========================================================
 # DARK MODE
 # =========================================================
-
+if "prev_theme" not in st.session_state:
+    st.session_state.prev_theme = theme
+if st.session_state.prev_theme != theme:
+    st.session_state.prev_theme = theme
+    st.rerun()
+    
 if theme == "Dark Mode":
-    st.markdown("""
-        <style>
-        .stApp { background-color: #0E1117; color: white; }
-        .stButton>button { background-color: #262730; color: white; border: 1px solid #444; }
-        .stDataFrame { background-color: #262730; color: white; }
-        </style>""", unsafe_allow_html=True)
-else:  # Light Mode
-    st.markdown("""
-        <style>
-        .stApp { background-color: #FFFFFF; color: black; }
-        .stButton>button { background-color: #F0F2F6; color: black; border: 1px solid #ddd; }
-        .stDataFrame { background-color: #FFFFFF; color: black; }
-        </style>""", unsafe_allow_html=True)
+    css = """
+    <style>
+    [data-testid="stAppViewContainer"], .main {background-color: #0E1117!important;}
+    [data-testid="stHeader"] {background-color: #0E1117!important;}
+    html, body, [class*="css"] {color: white!important;}
+    .stButton>button {background-color: #262730!important; color: white!important; border: 1px solid #444!important;}
+    </style>"""
+else:
+    css = """
+    <style>
+    [data-testid="stAppViewContainer"], .main {background-color: #FFFFFF!important;}
+    [data-testid="stHeader"] {background-color: #FFFFFF!important;}
+    html, body, [class*="css"] {color: black!important;}
+    .stButton>button {background-color: #F0F2F6!important; color: black!important; border: 1px solid #ddd!important;}
+    </style>"""
+    
+st.markdown(css, unsafe_allow_html=True)
+
 
 # =========================================================
 # TITLE
