@@ -38,18 +38,38 @@ if st.session_state.prev_theme != theme:
 if theme == "Dark Mode":
     css = """
     <style>
-    [data-testid="stAppViewContainer"], .main {background-color: #0E1117!important;}
-    [data-testid="stHeader"] {background-color: #0E1117!important;}
-    html, body, [class*="css"] {color: white!important;}
-    .stButton>button {background-color: #262730!important; color: white!important; border: 1px solid #444!important;}
+    /* Main + Sidebar */
+    [data-testid="stAppViewContainer"], [data-testid="stSidebar"], .main {
+        background-color: #0E1117!important;
+    }
+    /* Text color for everything */
+    html, body, [class*="css"], h1, h2, h3, p, label, div {
+        color: #FFFFFF!important;
+    }
+    /* Widgets */
+    .stButton>button, [data-baseweb="select"] > div {
+        background-color: #262730!important;
+        color: white!important;
+        border: 1px solid #444!important;
+    }
     </style>"""
-else:
+else:  # Light Mode
     css = """
     <style>
-    [data-testid="stAppViewContainer"], .main {background-color: #FFFFFF!important;}
-    [data-testid="stHeader"] {background-color: #FFFFFF!important;}
-    html, body, [class*="css"] {color: black!important;}
-    .stButton>button {background-color: #F0F2F6!important; color: black!important; border: 1px solid #ddd!important;}
+    /* Main + Sidebar */
+    [data-testid="stAppViewContainer"], [data-testid="stSidebar"], .main {
+        background-color: #FFFFFF!important;
+    }
+    /* Text color for everything - THIS was missing */
+    html, body, [class*="css"], h1, h2, h3, p, label, div {
+        color: #000000!important;
+    }
+    /* Widgets */
+    .stButton>button, [data-baseweb="select"] > div {
+        background-color: #F0F2F6!important;
+        color: black!important;
+        border: 1px solid #ddd!important;
+    }
     </style>"""
     
 st.markdown(css, unsafe_allow_html=True)
