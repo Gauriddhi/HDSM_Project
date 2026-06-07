@@ -54,23 +54,41 @@ if theme == "Dark Mode":
     }
     </style>"""
 else:  # Light Mode
-    css = """
-    <style>
-    /* Main + Sidebar */
-    [data-testid="stAppViewContainer"], [data-testid="stSidebar"], .main {
-        background-color: #FFFFFF!important;
-    }
-    /* Text color for everything - THIS was missing */
-    html, body, [class*="css"], h1, h2, h3, p, label, div {
-        color: #000000!important;
-    }
-    /* Widgets */
-    .stButton>button, [data-baseweb="select"] > div {
-        background-color: #F0F2F6!important;
-        color: black!important;
-        border: 1px solid #ddd!important;
-    }
-    </style>"""
+   css = """
+<style>
+[data-testid="stAppViewContainer"] {
+    background-color: white !important;
+}
+
+[data-testid="stSidebar"] {
+    background-color: white !important;
+}
+
+.stApp {
+    color: black !important;
+}
+
+h1, h2, h3, h4, h5, h6,
+p, span, label, div {
+    color: black !important;
+}
+
+/* Selectboxes */
+[data-baseweb="select"] * {
+    color: black !important;
+}
+
+/* Tabs */
+button[role="tab"] {
+    color: black !important;
+}
+
+/* Checkbox labels */
+.stCheckbox label {
+    color: black !important;
+}
+</style>
+"""
     
 st.markdown(css, unsafe_allow_html=True)
 
