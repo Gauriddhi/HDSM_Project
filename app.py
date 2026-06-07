@@ -34,8 +34,15 @@ if theme == "Dark Mode":
     st.markdown("""
         <style>
         .stApp { background-color: #0E1117; color: white; }
-        .stButton>button { background-color: #262730; color: white; }
-        .stDataFrame { background-color: #262730; }
+        .stButton>button { background-color: #262730; color: white; border: 1px solid #444; }
+        .stDataFrame { background-color: #262730; color: white; }
+        </style>""", unsafe_allow_html=True)
+else:  # Light Mode
+    st.markdown("""
+        <style>
+        .stApp { background-color: #FFFFFF; color: black; }
+        .stButton>button { background-color: #F0F2F6; color: black; border: 1px solid #ddd; }
+        .stDataFrame { background-color: #FFFFFF; color: black; }
         </style>""", unsafe_allow_html=True)
 
 # =========================================================
