@@ -104,7 +104,7 @@ else:
 
     .stMarkdown,
     .stText,
-    .stExpander
+    .stExpander,
     p,
     div,
     label,
