@@ -33,167 +33,70 @@ show_formula = st.sidebar.checkbox("Show HDSM Formula")
 # THEME SWITCHER
 # =========================================================
 
-if "prev_theme" not in st.session_state:
-    st.session_state.prev_theme = theme
-
-if st.session_state.prev_theme != theme:
-    st.session_state.prev_theme = theme
-    st.rerun()
-
 if theme == "Dark Mode":
-
     css = """
     <style>
-
-    /* Main App */
-    .stApp,
-    [data-testid="stAppViewContainer"] {
-        background-color: #0E1117 !important;
-        color: white !important;
+    .stApp {
+        background-color: #0E1117;
+        color: white;
     }
 
-    /* Sidebar */
     [data-testid="stSidebar"] {
-        background-color: #0E1117 !important;
-        color: white !important;
+        background-color: #0E1117;
     }
 
-    /* Header */
+    h1,h2,h3,h4,h5,h6,p,label,span,div {
+        color:white !important;
+    }
+
     header[data-testid="stHeader"] {
-        background-color: #0E1117 !important;
+        background:#0E1117 !important;
     }
 
-    /* Collapse Button */
-    [data-testid="collapsedControl"] {
-        color: white !important;
-    }
-
-    /* Text */
-    h1, h2, h3, h4, h5, h6,
-    p, span, label, div {
-        color: white !important;
-    }
-
-    /* Selectbox */
     [data-baseweb="select"] > div {
-        background-color: #262730 !important;
-        color: white !important;
-        border: 1px solid #444 !important;
+        background:#262730 !important;
+        color:white !important;
     }
 
-    div[role="listbox"] {
-        background-color: #262730 !important;
-        color: white !important;
+    .stButton button {
+        background:#262730 !important;
+        color:white !important;
     }
-
-    div[role="option"] {
-        color: white !important;
-    }
-
-    /* Buttons */
-    .stButton > button {
-        background-color: #262730 !important;
-        color: white !important;
-        border: 1px solid #444 !important;
-    }
-
-    /* File Uploader */
-    [data-testid="stFileUploader"] {
-        background-color: #262730 !important;
-        color: white !important;
-    }
-
-    [data-testid="stFileUploader"] * {
-        color: white !important;
-    }
-
     </style>
     """
-
-else:  # Light Mode
-
+else:
     css = """
     <style>
-
-    /* Main App */
-    .stApp,
-    [data-testid="stAppViewContainer"] {
-        background-color: white !important;
-        color: black !important;
+    .stApp {
+        background-color:white;
+        color:black;
     }
 
-    /* Sidebar */
     [data-testid="stSidebar"] {
-        background-color: white !important;
-        color: black !important;
+        background-color:white;
     }
 
-    /* Header */
+    h1,h2,h3,h4,h5,h6,p,label,span,div {
+        color:black !important;
+    }
+
     header[data-testid="stHeader"] {
-        background-color: white !important;
+        background:white !important;
     }
 
-    /* Collapse Button */
-    [data-testid="collapsedControl"] {
-        color: black !important;
-    }
-
-    /* Text */
-    h1, h2, h3, h4, h5, h6,
-    p, span, label, div {
-        color: black !important;
-    }
-
-    /* Selectbox */
     [data-baseweb="select"] > div {
-        background-color: white !important;
-        color: black !important;
-        border: 1px solid #cccccc !important;
+        background:white !important;
+        color:black !important;
+        border:1px solid #ccc !important;
     }
 
-    [data-baseweb="select"] * {
-        color: black !important;
+    .stButton button {
+        color:black !important;
     }
-
-    div[role="listbox"] {
-        background-color: white !important;
-        color: black !important;
-    }
-
-    div[role="option"] {
-        background-color: white !important;
-        color: black !important;
-    }
-
-    div[role="option"]:hover {
-        background-color: #f2f2f2 !important;
-    }
-
-    /* Buttons */
-    .stButton > button {
-        color: black !important;
-    }
-
-    /* File Uploader */
-    [data-testid="stFileUploader"] {
-        background-color: white !important;
-        color: black !important;
-    }
-
-    [data-testid="stFileUploader"] section {
-        background-color: white !important;
-        border: 2px solid #cccccc !important;
-    }
-
-    [data-testid="stFileUploader"] * {
-        color: black !important;
-    }
-
     </style>
     """
 
 st.markdown(css, unsafe_allow_html=True)
-
 # =========================================================
 # TITLE
 # =========================================================
