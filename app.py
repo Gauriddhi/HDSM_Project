@@ -37,7 +37,6 @@ st.markdown("""
 # =========================================================
 
 st.sidebar.title("HDSM Control Panel")
-theme        = st.sidebar.selectbox("Theme Mode", ["Light Mode", "Dark Mode"])
 save_results = st.sidebar.checkbox("Save Analysis Results")
 show_info    = st.sidebar.checkbox("Project Information")
 show_formula = st.sidebar.checkbox("Show HDSM Formula")
@@ -49,72 +48,7 @@ show_formula = st.sidebar.checkbox("Show HDSM Formula")
 # THEME SWITCHER
 # =========================================================
 
-if theme == "Dark Mode":
-    st.markdown("""
-    <style>
 
-    .stApp {
-        background-color: #0E1117 !important;
-        color: white !important;
-    }
-
-    [data-testid="stAppViewContainer"] {
-        background-color: #0E1117 !important;
-    }
-
-    [data-testid="stSidebar"] {
-        background-color: #161B22 !important;
-    }
-
-    .stMarkdown,
-    .stText,
-    .stExpander,
-    p,
-    div,
-    label,
-    span,
-    h1,h2,h3,h4,h5,h6 {
-        color: white !important;
-    }
-
-    .stButton>button {
-        background-color: #262730 !important;
-        color: white !important;
-    }
-
-    </style>
-    """, unsafe_allow_html=True)
-
-else:
-    st.markdown("""
-    <style>
-
-    .stApp {
-        background-color: white !important;
-        color: black !important;
-    }
-
-    [data-testid="stAppViewContainer"] {
-        background-color: white !important;
-    }
-
-    [data-testid="stSidebar"] {
-        background-color: #F5F5F5 !important;
-    }
-
-    .stMarkdown,
-    .stText,
-    .stExpander,
-    p,
-    div,
-    label,
-    span,
-    h1,h2,h3,h4,h5,h6 {
-        color: black !important;
-    }
-
-    </style>
-    """, unsafe_allow_html=True)
 
 # =========================================================
 # TITLE
