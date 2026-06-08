@@ -68,6 +68,7 @@ if theme == "Dark Mode":
 
     .stMarkdown,
     .stText,
+    .stExpander,
     p,
     div,
     label,
@@ -103,6 +104,7 @@ else:
 
     .stMarkdown,
     .stText,
+    .stExpander
     p,
     div,
     label,
