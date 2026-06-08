@@ -29,6 +29,10 @@ show_formula = st.sidebar.checkbox("Show HDSM Formula")
 # =========================================================
 # DARK MODE
 # =========================================================
+# =========================================================
+# THEME SWITCHER
+# =========================================================
+
 if "prev_theme" not in st.session_state:
     st.session_state.prev_theme = theme
 
@@ -37,13 +41,13 @@ if st.session_state.prev_theme != theme:
     st.rerun()
 
 if theme == "Dark Mode":
+
     css = """
     <style>
 
     /* Main App */
-    [data-testid="stAppViewContainer"],
     .stApp,
-    .main {
+    [data-testid="stAppViewContainer"] {
         background-color: #0E1117 !important;
         color: white !important;
     }
@@ -51,6 +55,16 @@ if theme == "Dark Mode":
     /* Sidebar */
     [data-testid="stSidebar"] {
         background-color: #0E1117 !important;
+        color: white !important;
+    }
+
+    /* Header */
+    header[data-testid="stHeader"] {
+        background-color: #0E1117 !important;
+    }
+
+    /* Collapse Button */
+    [data-testid="collapsedControl"] {
         color: white !important;
     }
 
@@ -67,22 +81,43 @@ if theme == "Dark Mode":
         border: 1px solid #444 !important;
     }
 
-    /* Dataframe */
-    div[data-testid="stDataFrame"] {
+    div[role="listbox"] {
         background-color: #262730 !important;
+        color: white !important;
+    }
+
+    div[role="option"] {
+        color: white !important;
+    }
+
+    /* Buttons */
+    .stButton > button {
+        background-color: #262730 !important;
+        color: white !important;
+        border: 1px solid #444 !important;
+    }
+
+    /* File Uploader */
+    [data-testid="stFileUploader"] {
+        background-color: #262730 !important;
+        color: white !important;
+    }
+
+    [data-testid="stFileUploader"] * {
+        color: white !important;
     }
 
     </style>
     """
 
-else:   # Light Mode
+else:  # Light Mode
+
     css = """
     <style>
 
     /* Main App */
-    [data-testid="stAppViewContainer"],
     .stApp,
-    .main {
+    [data-testid="stAppViewContainer"] {
         background-color: white !important;
         color: black !important;
     }
@@ -90,6 +125,16 @@ else:   # Light Mode
     /* Sidebar */
     [data-testid="stSidebar"] {
         background-color: white !important;
+        color: black !important;
+    }
+
+    /* Header */
+    header[data-testid="stHeader"] {
+        background-color: white !important;
+    }
+
+    /* Collapse Button */
+    [data-testid="collapsedControl"] {
         color: black !important;
     }
 
@@ -110,19 +155,37 @@ else:   # Light Mode
         color: black !important;
     }
 
-    /* Dataframe */
-    div[data-testid="stDataFrame"] {
+    div[role="listbox"] {
         background-color: white !important;
         color: black !important;
     }
 
-    /* Tabs */
-    button[role="tab"] {
+    div[role="option"] {
+        background-color: white !important;
         color: black !important;
     }
 
-    /* Checkbox */
-    .stCheckbox label {
+    div[role="option"]:hover {
+        background-color: #f2f2f2 !important;
+    }
+
+    /* Buttons */
+    .stButton > button {
+        color: black !important;
+    }
+
+    /* File Uploader */
+    [data-testid="stFileUploader"] {
+        background-color: white !important;
+        color: black !important;
+    }
+
+    [data-testid="stFileUploader"] section {
+        background-color: white !important;
+        border: 2px solid #cccccc !important;
+    }
+
+    [data-testid="stFileUploader"] * {
         color: black !important;
     }
 
@@ -130,7 +193,6 @@ else:   # Light Mode
     """
 
 st.markdown(css, unsafe_allow_html=True)
-
 
 # =========================================================
 # TITLE
