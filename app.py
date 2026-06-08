@@ -31,65 +31,104 @@ show_formula = st.sidebar.checkbox("Show HDSM Formula")
 # =========================================================
 if "prev_theme" not in st.session_state:
     st.session_state.prev_theme = theme
+
 if st.session_state.prev_theme != theme:
     st.session_state.prev_theme = theme
     st.rerun()
-    
+
 if theme == "Dark Mode":
     css = """
     <style>
-    /* Main + Sidebar */
-    [data-testid="stAppViewContainer"], [data-testid="stSidebar"], .main {
-        background-color: #0E1117!important;
+
+    /* Main App */
+    [data-testid="stAppViewContainer"],
+    .stApp,
+    .main {
+        background-color: #0E1117 !important;
+        color: white !important;
     }
-    /* Text color for everything */
-    html, body, [class*="css"], h1, h2, h3, p, label, div {
-        color: #FFFFFF!important;
+
+    /* Sidebar */
+    [data-testid="stSidebar"] {
+        background-color: #0E1117 !important;
+        color: white !important;
     }
-    /* Widgets */
-    .stButton>button, [data-baseweb="select"] > div {
-        background-color: #262730!important;
-        color: white!important;
-        border: 1px solid #444!important;
+
+    /* Text */
+    h1, h2, h3, h4, h5, h6,
+    p, span, label, div {
+        color: white !important;
     }
-    </style>"""
-else:  # Light Mode
-   css = """
-<style>
-[data-testid="stAppViewContainer"] {
-    background-color: white !important;
-}
 
-[data-testid="stSidebar"] {
-    background-color: white !important;
-}
+    /* Selectbox */
+    [data-baseweb="select"] > div {
+        background-color: #262730 !important;
+        color: white !important;
+        border: 1px solid #444 !important;
+    }
 
-.stApp {
-    color: black !important;
-}
+    /* Dataframe */
+    div[data-testid="stDataFrame"] {
+        background-color: #262730 !important;
+    }
 
-h1, h2, h3, h4, h5, h6,
-p, span, label, div {
-    color: black !important;
-}
+    </style>
+    """
 
-/* Selectboxes */
-[data-baseweb="select"] * {
-    color: black !important;
-}
+else:   # Light Mode
+    css = """
+    <style>
 
-/* Tabs */
-button[role="tab"] {
-    color: black !important;
-}
+    /* Main App */
+    [data-testid="stAppViewContainer"],
+    .stApp,
+    .main {
+        background-color: white !important;
+        color: black !important;
+    }
 
-/* Checkbox labels */
-.stCheckbox label {
-    color: black !important;
-}
-</style>
-"""
-    
+    /* Sidebar */
+    [data-testid="stSidebar"] {
+        background-color: white !important;
+        color: black !important;
+    }
+
+    /* Text */
+    h1, h2, h3, h4, h5, h6,
+    p, span, label, div {
+        color: black !important;
+    }
+
+    /* Selectbox */
+    [data-baseweb="select"] > div {
+        background-color: white !important;
+        color: black !important;
+        border: 1px solid #cccccc !important;
+    }
+
+    [data-baseweb="select"] * {
+        color: black !important;
+    }
+
+    /* Dataframe */
+    div[data-testid="stDataFrame"] {
+        background-color: white !important;
+        color: black !important;
+    }
+
+    /* Tabs */
+    button[role="tab"] {
+        color: black !important;
+    }
+
+    /* Checkbox */
+    .stCheckbox label {
+        color: black !important;
+    }
+
+    </style>
+    """
+
 st.markdown(css, unsafe_allow_html=True)
 
 
