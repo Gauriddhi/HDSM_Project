@@ -16,6 +16,22 @@ import requests
 
 st.set_page_config(page_title="HDSM Drift Monitoring System", layout="wide")
 
+st.markdown("""
+<style>
+[data-testid="stAppViewContainer"] {
+    background-color: inherit;
+}
+
+[data-testid="stHeader"] {
+    background-color: transparent;
+}
+
+[data-testid="stToolbar"] {
+    right: 2rem;
+}
+</style>
+""", unsafe_allow_html=True)
+
 # =========================================================
 # SIDEBAR
 # =========================================================
@@ -34,67 +50,69 @@ show_formula = st.sidebar.checkbox("Show HDSM Formula")
 # =========================================================
 
 if theme == "Dark Mode":
-    css = """
+    st.markdown("""
     <style>
+
     .stApp {
-        background-color: #0E1117;
-        color: white;
+        background-color: #0E1117 !important;
+        color: white !important;
+    }
+
+    [data-testid="stAppViewContainer"] {
+        background-color: #0E1117 !important;
     }
 
     [data-testid="stSidebar"] {
-        background-color: #0E1117;
+        background-color: #161B22 !important;
     }
 
-    h1,h2,h3,h4,h5,h6,p,label,span,div {
-        color:white !important;
+    .stMarkdown,
+    .stText,
+    p,
+    div,
+    label,
+    span,
+    h1,h2,h3,h4,h5,h6 {
+        color: white !important;
     }
 
-    header[data-testid="stHeader"] {
-        background:#0E1117 !important;
+    .stButton>button {
+        background-color: #262730 !important;
+        color: white !important;
     }
 
-    [data-baseweb="select"] > div {
-        background:#262730 !important;
-        color:white !important;
-    }
-
-    .stButton button {
-        background:#262730 !important;
-        color:white !important;
-    }
     </style>
-    """
+    """, unsafe_allow_html=True)
+
 else:
-    css = """
+    st.markdown("""
     <style>
+
     .stApp {
-        background-color:white;
-        color:black;
+        background-color: white !important;
+        color: black !important;
+    }
+
+    [data-testid="stAppViewContainer"] {
+        background-color: white !important;
     }
 
     [data-testid="stSidebar"] {
-        background-color:white;
+        background-color: #F5F5F5 !important;
     }
 
-    h1,h2,h3,h4,h5,h6,p,label,span,div {
-        color:black !important;
+    .stMarkdown,
+    .stText,
+    p,
+    div,
+    label,
+    span,
+    h1,h2,h3,h4,h5,h6 {
+        color: black !important;
     }
 
-    header[data-testid="stHeader"] {
-        background:white !important;
-    }
-
-    [data-baseweb="select"] > div {
-        background:white !important;
-        color:black !important;
-        border:1px solid #ccc !important;
-    }
-
-    .stButton button {
-        color:black !important;
-    }
     </style>
-    """
+    """, unsafe_allow_html=True)
 
 st.markdown(css, unsafe_allow_html=True)
 # =========================================================
