@@ -77,8 +77,11 @@ if show_info:
 
             LIVE DATA SOURCES
             Tab 1: Yahoo Finance — real stock, crypto, index data
+            
             Tab 2: Open-Meteo  — real IoT weather sensor data
+            
             Tab 3: Healthcare  — synthetic patient population simulation
+            
             Tab 4: CSV / Excel — your own dataset
 
             NOTE: Kafka / AWS Kinesis integration is left as future work.
