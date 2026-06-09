@@ -21,11 +21,9 @@ st.markdown("""
 [data-testid="stAppViewContainer"] {
     background-color: inherit;
 }
-
 [data-testid="stHeader"] {
     background-color: transparent;
 }
-
 [data-testid="stToolbar"] {
     right: 2rem;
 }
@@ -40,15 +38,6 @@ st.sidebar.title("HDSM Control Panel")
 save_results = st.sidebar.checkbox("Save Analysis Results")
 show_info    = st.sidebar.checkbox("Project Information")
 show_formula = st.sidebar.checkbox("Show HDSM Formula")
-
-# =========================================================
-# DARK MODE
-# =========================================================
-# =========================================================
-# THEME SWITCHER
-# =========================================================
-
-
 
 # =========================================================
 # TITLE
@@ -67,7 +56,7 @@ if show_info:
             HDSM (Hybrid Drift Stability Model) helps organizations monitor
             whether incoming real-time data is becoming different from historical baseline data.
 
-            HOW IT WORKS
+            **HOW IT WORKS**
             1. Historical data becomes the BASELINE.
             2. Incoming/new data becomes STREAMING DATA.
             3. The stream is divided into small sliding windows.
@@ -75,13 +64,11 @@ if show_info:
             5. Weights and threshold are auto-calibrated from the baseline.
             6. Final drift score: Stable / Moderate Drift / High Drift
 
-            LIVE DATA SOURCES
-            Tab 1: Yahoo Finance — real stock, crypto, index data
-            Tab 2: Open-Meteo  — real IoT weather sensor data
-            Tab 3: Healthcare  — synthetic patient population simulation
-            Tab 4: CSV / Excel — your own dataset
-
-            NOTE: Kafka / AWS Kinesis integration is left as future work.
+            **LIVE DATA SOURCES**
+            * Tab 1: Yahoo Finance — real stock, crypto, index data
+            * Tab 2: Open-Meteo  — real IoT weather sensor data
+            * Tab 3: Healthcare  — synthetic patient population simulation
+            * Tab 4: CSV / Excel — your own dataset
         """)
 
 # =========================================================
@@ -91,14 +78,14 @@ if show_info:
 if show_formula:
     with st.expander("HDSM Formula Reference", expanded=True):
         st.latex(r"D_t = \alpha \left|\mu_t - \mu_0\right| + \beta \,\mathrm{PSI}_t + \gamma \,\mathrm{KS}_t + \lambda \,S_t")
-        st.write(r"• |μt − μ0| = Confidence Drift")
-        st.write(r"• PSIt      = Population Stability Index")
-        st.write(r"• KSt       = Kolmogorov–Smirnov Statistic")
-        st.write(r"• St        = Stability Penalty |μt − μt−1|")
-        st.write(r"• α β γ λ   = Auto-calibrated weights")
-        st.write(r"• δ         = Auto-calibrated threshold (μ_base + 2σ_base)")
+        st.write(r"• $| \mu_t - \mu_0 |$ = Confidence Drift")
+        st.write(r"• $\mathrm{PSI}_t$      = Population Stability Index")
+        st.write(r"• $\mathrm{KS}_t$       = Kolmogorov–Smirnov Statistic")
+        st.write(r"• $S_t$         = Stability Penalty $| \mu_t - \mu_{t-1} |$")
+        st.write(r"• $\alpha, \beta, \gamma, \lambda$   = Auto-calibrated weights")
+        st.write(r"• $\delta$          = Auto-calibrated threshold ($\mu_{\text{base}} + 2\sigma_{\text{base}}$)")
 
-st.info("Choose a data source tab below. HDSM auto-calibrates all weights and threshold from your baseline data.")
+st.info("Choose a data source tab below. HDSM auto-calibrates all weights and thresholds from your baseline data.")
 
 # =========================================================
 # HELPER FUNCTIONS
@@ -229,11 +216,8 @@ def calibrate_threshold(baseline_signal, baseline_df, window_size,
     auto = float(np.mean(baseline_Dt) + 2 * np.std(baseline_Dt))
     return round(max(auto, 0.05), 4)
 
-
 # =========================================================
-# SHARED DRIFT RUNNER
-# baseline_override: pass exact row count for baseline
-# when you want a clean split (used by healthcare tab)
+# MAIN DRIFT RUNNER ENGINE
 # =========================================================
 
 def run_hdsm(df, target_col, monitor_mode, feature_to_monitor,
@@ -259,7 +243,7 @@ def run_hdsm(df, target_col, monitor_mode, feature_to_monitor,
         st.error("Dataset needs at least 50 rows.")
         return
     if stream_rows < window_size:
-        st.error("Not enough streaming rows. Use a larger dataset or more drifted patients.")
+        st.error("Not enough streaming rows.")
         return
 
     st.success("HDSM Drift Monitoring Started")
@@ -319,11 +303,11 @@ def run_hdsm(df, target_col, monitor_mode, feature_to_monitor,
     st.subheader("Calibration Summary")
     st.caption(f"Weights: {w_src}   |   Threshold: {t_src}")
     wc1, wc2, wc3, wc4, wc5 = st.columns(5)
-    wc1.metric("α  Confidence", alpha)
-    wc2.metric("β  PSI",        beta)
-    wc3.metric("γ  KS",         gamma)
-    wc4.metric("λ  Stability",  lam)
-    wc5.metric("δ  Threshold",  threshold)
+    wc1.metric("α Confidence", alpha)
+    wc2.metric("β PSI",        beta)
+    wc3.metric("γ KS",         gamma)
+    wc4.metric("λ Stability",  lam)
+    wc5.metric("δ Threshold",  threshold)
 
     drift_scores, severity_list = [], []
     conf_drift_list, psi_list, ks_list, stability_list, drift_deriv_list = [], [], [], [], []
@@ -372,7 +356,7 @@ def run_hdsm(df, target_col, monitor_mode, feature_to_monitor,
     r1, r2, r3 = st.columns(3)
     r1.metric("Final Drift Score (Dt)", round(final_score, 4))
     r2.metric("Drift Status",           drift_status)
-    r3.metric("Final Severity",         final_severity)
+    r3.metric("Final Severity",          final_severity)
 
     st.subheader("Recommendations")
     if final_severity == "High Drift":
@@ -446,7 +430,7 @@ def run_hdsm(df, target_col, monitor_mode, feature_to_monitor,
 
 
 # =========================================================
-# TABS
+# TABS SETUP
 # =========================================================
 
 tab1, tab2, tab3, tab4 = st.tabs([
@@ -456,401 +440,134 @@ tab1, tab2, tab3, tab4 = st.tabs([
     "📂  Upload CSV / Excel",
 ])
 
-
 # =========================================================
 # TAB 1 — YAHOO FINANCE
 # =========================================================
-
 with tab1:
     st.markdown("### Live Stock / Crypto Data — Yahoo Finance")
-    st.caption("Real market data fetched directly from the cloud. No file upload needed.")
-
+    
     presets = {
         "Apple (AAPL)":          "AAPL",
         "Tesla (TSLA)":          "TSLA",
         "Google (GOOGL)":        "GOOGL",
-        "Microsoft (MSFT)":      "MSFT",
-        "Amazon (AMZN)":         "AMZN",
-        "Reliance India":        "RELIANCE.NS",
-        "TCS India":             "TCS.NS",
         "Bitcoin (BTC-USD)":     "BTC-USD",
-        "Gold (GC=F)":           "GC=F",
-        "S&P 500 (^GSPC)":       "^GSPC",
         "Custom — type below":   "CUSTOM",
     }
-
-    sel_preset = st.selectbox("Choose a stock / asset", list(presets.keys()))
-
-    if presets[sel_preset] == "CUSTOM":
-        ticker = st.text_input("Enter ticker symbol",
-                               placeholder="e.g. INFY.NS, NFLX, ETH-USD").upper().strip()
-    else:
-        ticker = presets[sel_preset]
-        st.caption(f"Selected ticker: **{ticker}**")
+    sel_preset = st.selectbox("Choose a stock / asset", list(presets.keys()), key="fin_preset")
+    ticker = st.text_input("Enter ticker symbol", value="AAPL") if presets[sel_preset] == "CUSTOM" else presets[sel_preset]
 
     fc1, fc2 = st.columns(2)
     with fc1:
-        period_map = {"6 Months":"6mo","1 Year":"1y","2 Years":"2y","5 Years":"5y"}
-        sel_period = st.selectbox("Historical Period", list(period_map.keys()), index=1)
-        period     = period_map[sel_period]
+        sel_period = st.selectbox("Historical Period", ["6 Months","1 Year","2 Years"], index=1, key="fin_period")
+        period = {"6 Months":"6mo","1 Year":"1y","2 Years":"2y"}[sel_period]
     with fc2:
-        interval_map = {"Daily":"1d","Weekly":"1wk"}
-        sel_interval = st.selectbox("Interval", list(interval_map.keys()), index=0)
-        interval     = interval_map[sel_interval]
+        sel_interval = st.selectbox("Interval", ["Daily","Weekly"], key="fin_interval")
+        interval = {"Daily":"1d","Weekly":"1wk"}[sel_interval]
 
     if st.button("Fetch Live Data & Run HDSM", type="primary", key="btn_finance"):
-        if not ticker:
-            st.error("Please enter a ticker symbol.")
-        else:
-            with st.spinner(f"Fetching {ticker} from Yahoo Finance..."):
-                try:
-                    raw = yf.Ticker(ticker).history(period=period, interval=interval)
-                    if raw.empty:
-                        st.error(f"No data for '{ticker}'. Check symbol. Indian stocks need .NS suffix.")
-                    else:
-                        raw = raw.reset_index()
-                        raw.columns = [str(c).replace(" ","_") for c in raw.columns]
-                        for col in ["Date","Datetime"]:
-                            if col in raw.columns:
-                                raw[col] = pd.to_datetime(raw[col]).dt.tz_localize(None)
-                        keep    = [c for c in ["Open","High","Low","Close","Volume"] if c in raw.columns]
-                        df_live = raw[keep].dropna().reset_index(drop=True)
+        with st.spinner(f"Fetching {ticker}..."):
+            raw = yf.Ticker(ticker).history(period=period, interval=interval)
+            if not raw.empty:
+                df_live = raw[['Close', 'Open', 'High', 'Low', 'Volume']].reset_index(drop=True)
+                
+                with st.expander("Manual override (optional)"):
+                    f_ov_a = st.number_input("Alpha", 0.0,1.0,0.0, key="fin_ov_a")
+                    f_ov_b = st.number_input("Beta",  0.0,1.0,0.0, key="fin_ov_b")
+                    f_ov_g = st.number_input("Gamma", 0.0,1.0,0.0, key="fin_ov_g")
+                    f_ov_l = st.number_input("Lambda",0.0,1.0,0.0, key="fin_ov_l")
+                    f_ov_t = st.number_input("Threshold δ",0.0,10.0,0.0, key="fin_ov_t")
 
-                        if len(df_live) < 50:
-                            st.error(f"Only {len(df_live)} rows. Try a longer period.")
-                        else:
-                            st.success(f"Fetched **{len(df_live)} rows** for **{ticker}**")
-                            st.dataframe(df_live.head())
-                            lc1, lc2 = st.columns(2)
-                            lc1.metric("Rows", df_live.shape[0])
-                            lc2.metric("Columns", df_live.shape[1])
-                            st.info("Monitoring **Close price** for market drift.")
-
-                            with st.expander("Manual override (optional)"):
-                                st.caption("Leave at 0 for auto-calibration.")
-                                lo1, lo2 = st.columns(2)
-                                with lo1:
-                                    lov_a = st.number_input("Alpha",  0.0,1.0,0.0,0.01,key="la")
-                                    lov_b = st.number_input("Beta",   0.0,1.0,0.0,0.01,key="lb")
-                                with lo2:
-                                    lov_g = st.number_input("Gamma",  0.0,1.0,0.0,0.01,key="lg")
-                                    lov_l = st.number_input("Lambda", 0.0,1.0,0.0,0.01,key="ll")
-                                lov_t = st.number_input("Threshold δ",0.0,10.0,0.0,0.01,key="lt")
-
-                            run_hdsm(df=df_live, target_col="Close",
-                                     monitor_mode="Feature value",
-                                     feature_to_monitor="Close",
-                                     target_is_classification=False,
-                                     ov_alpha=lov_a, ov_beta=lov_b,
-                                     ov_gamma=lov_g, ov_lam=lov_l, ov_thresh=lov_t)
-
-                except Exception as e:
-                    st.error(f"Error: {e}")
-                    st.caption("Indian stocks: add .NS  |  Crypto: add -USD")
-
+                run_hdsm(df=df_live, target_col="Close", monitor_mode="Feature value",
+                         feature_to_monitor="Close", target_is_classification=False,
+                         ov_alpha=f_ov_a, ov_beta=f_ov_b, ov_gamma=f_ov_g, ov_lam=f_ov_l, ov_thresh=f_ov_t)
 
 # =========================================================
-# TAB 2 — OPEN-METEO WEATHER / IOT
+# TAB 2 — OPEN-METEO WEATHER
 # =========================================================
-
 with tab2:
-    st.markdown("### Live IoT Sensor Data — Weather (Open-Meteo)")
-    st.caption("Real daily weather readings for any city. Free, no API key needed.")
-
-    city_presets = {
-        "Mumbai, India":    (19.0760, 72.8777),
-        "Delhi, India":     (28.6139, 77.2090),
-        "Bangalore, India": (12.9716, 77.5946),
-        "London, UK":       (51.5074, -0.1278),
-        "New York, USA":    (40.7128, -74.0060),
-        "Tokyo, Japan":     (35.6762, 139.6503),
-        "Custom location":  None,
-    }
-
-    sel_city = st.selectbox("Choose a city", list(city_presets.keys()))
-
-    if city_presets[sel_city] is None:
-        wc1, wc2 = st.columns(2)
-        lat = wc1.number_input("Latitude",  value=19.07, format="%.4f")
-        lon = wc2.number_input("Longitude", value=72.87, format="%.4f")
-    else:
-        lat, lon = city_presets[sel_city]
-        st.caption(f"Coordinates: {lat}, {lon}")
-
-    weather_days = st.slider("Days of historical data", 30, 365, 180)
-
-    sensor_map = {
-        "Temperature (°C)": "Temperature",
-        "Humidity (%)":      "Humidity",
-        "Wind Speed (km/h)": "Wind_Speed",
-        "Rainfall (mm)":     "Rainfall",
-    }
-    sel_sensor = st.selectbox("Sensor to monitor", list(sensor_map.keys()))
-    feat_col   = sensor_map[sel_sensor]
+    st.markdown("### Live IoT Sensor Data — Weather")
+    sel_city = st.selectbox("Choose a city", ["Mumbai, India", "London, UK", "New York, USA"], key="weather_city")
+    lat, lon = {"Mumbai, India": (19.0760, 72.8777), "London, UK": (51.5074, -0.1278), "New York, USA": (40.7128, -74.0060)}[sel_city]
+    
+    weather_days = st.slider("Days of historical data", 30, 365, 180, key="weather_days")
+    feat_col = st.selectbox("Sensor to monitor", ["Temperature", "Humidity", "Wind_Speed"], key="weather_sensor")
 
     if st.button("Fetch Weather Data & Run HDSM", type="primary", key="btn_weather"):
-        with st.spinner(f"Fetching {weather_days} days of weather for {sel_city}..."):
-            try:
-                from datetime import datetime, timedelta
-                end_date   = datetime.now().strftime("%Y-%m-%d")
-                start_date = (datetime.now() - timedelta(days=weather_days)).strftime("%Y-%m-%d")
-                url = (f"https://archive-api.open-meteo.com/v1/archive"
-                       f"?latitude={lat}&longitude={lon}"
-                       f"&start_date={start_date}&end_date={end_date}"
-                       f"&daily=temperature_2m_max,precipitation_sum,"
-                       f"wind_speed_10m_max,relative_humidity_2m_mean"
-                       f"&timezone=auto")
+        with st.spinner("Fetching weather records..."):
+            url = f"https://archive-api.open-meteo.com/v1/archive?latitude={lat}&longitude={lon}&start_date=2025-01-01&end_date=2025-06-01&daily=temperature_2m_max,relative_humidity_2m_mean,wind_speed_10m_max&timezone=auto"
+            resp = requests.get(url, timeout=15).json()
+            if "daily" in resp:
+                df_weather = pd.DataFrame({
+                    "Temperature": resp["daily"].get("temperature_2m_max", []),
+                    "Humidity": resp["daily"].get("relative_humidity_2m_mean", []),
+                    "Wind_Speed": resp["daily"].get("wind_speed_10m_max", [])
+                }).dropna().reset_index(drop=True)
+                
+                with st.expander("Manual override (optional)"):
+                    w_ov_a = st.number_input("Alpha", 0.0,1.0,0.0, key="w_ov_a")
+                    w_ov_b = st.number_input("Beta",  0.0,1.0,0.0, key="w_ov_b")
+                    w_ov_g = st.number_input("Gamma", 0.0,1.0,0.0, key="w_ov_g")
+                    w_ov_l = st.number_input("Lambda",0.0,1.0,0.0, key="w_ov_l")
+                    w_ov_t = st.number_input("Threshold δ",0.0,10.0,0.0, key="w_ov_t")
 
-                resp = requests.get(url, timeout=15)
-                data = resp.json()
-
-                if "daily" not in data:
-                    st.error("Could not fetch weather data. Try a different location.")
-                else:
-                    daily = data["daily"]
-                    df_weather = pd.DataFrame({
-                        "Date":        daily.get("time", []),
-                        "Temperature": daily.get("temperature_2m_max", []),
-                        "Humidity":    daily.get("relative_humidity_2m_mean", []),
-                        "Wind_Speed":  daily.get("wind_speed_10m_max", []),
-                        "Rainfall":    daily.get("precipitation_sum", []),
-                    })
-                    df_weather = df_weather.dropna().reset_index(drop=True)
-
-                    st.success(f"Fetched **{len(df_weather)} daily readings** for **{sel_city}**")
-                    st.dataframe(df_weather.head())
-                    wm1, wm2 = st.columns(2)
-                    wm1.metric("Rows", df_weather.shape[0])
-                    wm2.metric("Columns", df_weather.shape[1])
-                    st.info(f"Monitoring **{sel_sensor}** for IoT sensor drift.")
-
-                    with st.expander("Manual override (optional)"):
-                        st.caption("Leave at 0 for auto-calibration.")
-                        wo1, wo2 = st.columns(2)
-                        with wo1:
-                            wov_a = st.number_input("Alpha",  0.0,1.0,0.0,0.01,key="wa")
-                            wov_b = st.number_input("Beta",   0.0,1.0,0.0,0.01,key="wb")
-                        with wo2:
-                            wov_g = st.number_input("Gamma",  0.0,1.0,0.0,0.01,key="wg")
-                            wov_l = st.number_input("Lambda", 0.0,1.0,0.0,0.01,key="wl")
-                        wov_t = st.number_input("Threshold δ",0.0,10.0,0.0,0.01,key="wt")
-
-                    run_hdsm(df=df_weather, target_col=feat_col,
-                             monitor_mode="Feature value",
-                             feature_to_monitor=feat_col,
-                             target_is_classification=False,
-                             ov_alpha=wov_a, ov_beta=wov_b,
-                             ov_gamma=wov_g, ov_lam=wov_l, ov_thresh=wov_t)
-
-            except Exception as e:
-                st.error(f"Error fetching weather data: {e}")
-
+                run_hdsm(df=df_weather, target_col=feat_col, monitor_mode="Feature value",
+                         feature_to_monitor=feat_col, target_is_classification=False,
+                         ov_alpha=w_ov_a, ov_beta=w_ov_b, ov_gamma=w_ov_g, ov_lam=w_ov_l, ov_thresh=w_ov_t)
 
 # =========================================================
 # TAB 3 — HEALTHCARE SYNTHETIC SIMULATION
 # =========================================================
-
 with tab3:
     st.markdown("### Healthcare Patient Data — Drift Simulation")
-    st.caption(
-        "Generates realistic synthetic patient data. "
-        "Real patient APIs require hospital credentials (HIPAA/DPDP privacy laws). "
-        "Synthetic simulation is standard in healthcare ML research."
-    )
-    st.info(
-        "**How it works:** Generates STABLE patients as baseline and "
-        "DRIFTED patients as stream. Baseline split is exact — "
-        "no drifted data leaks into baseline. "
-        "HDSM detects the population shift correctly."
-    )
-
     hc_scenarios = {
-        "Diabetes Progression — High Drift": {
-            "desc": "Glucose and insulin rise significantly. Hospital patient mix shifting toward diabetic cases. Expect High Drift.",
-            "stable":  {"glucose":(100,15),"blood_pressure":(80,10),"bmi":(26,4),"age":(40,12),"insulin":(80,20)},
-            "drifted": {"glucose":(155,25),"blood_pressure":(98,15),"bmi":(34,6),"age":(58,10),"insulin":(190,45)},
-            "target":  "glucose",
-        },
-        "Post-COVID Patient Shift — Moderate Drift": {
-            "desc": "Mild increase in age, BMI, and blood pressure post-COVID. Expect Moderate Drift.",
-            "stable":  {"glucose":(95,12),"blood_pressure":(75,8),"bmi":(24,3),"age":(35,10),"insulin":(75,18)},
-            "drifted": {"glucose":(103,14),"blood_pressure":(84,10),"bmi":(28,4),"age":(45,11),"insulin":(95,22)},
-            "target":  "blood_pressure",
-        },
-        "Stable Hospital — Seasonal Variation — Low Drift": {
-            "desc": "Very small natural seasonal variation in patient readings. Expect Low Drift — shows HDSM correctly identifies stability.",
-            "stable":  {"glucose":(99,14),"blood_pressure":(79,9),"bmi":(25,4),"age":(40,12),"insulin":(79,20)},
-            "drifted": {"glucose":(101,14),"blood_pressure":(81,9),"bmi":(26,4),"age":(41,12),"insulin":(82,20)},
-            "target":  "glucose",
-        },
-        "Cardiac Risk Population — High Drift": {
-            "desc": "Strongly rising age and blood pressure — aging patient population arriving. Expect High Drift.",
-            "stable":  {"glucose":(98,14),"blood_pressure":(78,9),"bmi":(25,4),"age":(38,11),"insulin":(78,22)},
-            "drifted": {"glucose":(125,22),"blood_pressure":(108,18),"bmi":(31,5),"age":(65,11),"insulin":(155,40)},
-            "target":  "blood_pressure",
-        },
+        "Diabetes Progression — High Drift": {"stable": (100, 15), "drifted": (155, 25), "target": "glucose"},
+        "Stable Hospital — Low Drift": {"stable": (99, 14), "drifted": (101, 14), "target": "glucose"}
     }
-
-    sel_scenario = st.selectbox("Choose a healthcare scenario", list(hc_scenarios.keys()))
-    scenario     = hc_scenarios[sel_scenario]
-    st.caption(scenario["desc"])
-
-    hc1, hc2 = st.columns(2)
-    with hc1:
-        n_stable  = st.slider("Stable patients (baseline)",  100, 800, 350, 50)
-    with hc2:
-        n_drifted = st.slider("Drifted patients (stream)",   100, 800, 250, 50)
+    sel_scenario = st.selectbox("Choose a healthcare scenario", list(hc_scenarios.keys()), key="hc_scen")
+    scen = hc_scenarios[sel_scenario]
+    
+    n_stable  = st.slider("Stable patients (baseline)", 100, 800, 350, key="hc_stable")
+    n_drifted = st.slider("Drifted patients (stream)",  100, 800, 250, key="hc_drift")
 
     if st.button("Generate Data & Run HDSM", type="primary", key="btn_health"):
-
         np.random.seed(42)
-        s = scenario["stable"]
-        d = scenario["drifted"]
-
-        stable_df = pd.DataFrame({
-            "glucose":        np.random.normal(s["glucose"][0],        s["glucose"][1],        n_stable),
-            "blood_pressure": np.random.normal(s["blood_pressure"][0], s["blood_pressure"][1], n_stable),
-            "bmi":            np.random.normal(s["bmi"][0],            s["bmi"][1],            n_stable),
-            "age":            np.random.normal(s["age"][0],            s["age"][1],            n_stable).clip(18,90),
-            "insulin":        np.random.normal(s["insulin"][0],        s["insulin"][1],        n_stable).clip(0,500),
-            "outcome":        np.random.choice([0,1], n_stable, p=[0.65,0.35]),
-        })
-
-        drifted_df = pd.DataFrame({
-            "glucose":        np.random.normal(d["glucose"][0],        d["glucose"][1],        n_drifted),
-            "blood_pressure": np.random.normal(d["blood_pressure"][0], d["blood_pressure"][1], n_drifted),
-            "bmi":            np.random.normal(d["bmi"][0],            d["bmi"][1],            n_drifted),
-            "age":            np.random.normal(d["age"][0],            d["age"][1],            n_drifted).clip(18,90),
-            "insulin":        np.random.normal(d["insulin"][0],        d["insulin"][1],        n_drifted).clip(0,500),
-            "outcome":        np.random.choice([0,1], n_drifted, p=[0.30,0.70]),
-        })
-
-        df_health = pd.concat([stable_df, drifted_df], ignore_index=True).round(2)
-
-        st.success(f"Generated **{len(df_health)} patient records** ({n_stable} stable + {n_drifted} drifted)")
-
-        st.markdown("**Population Comparison — Stable vs Drifted:**")
-        compare = pd.DataFrame({
-            "Feature":      ["Glucose","Blood Pressure","BMI","Age","Insulin"],
-            "Stable Mean":  [round(stable_df[c].mean(),1) for c in ["glucose","blood_pressure","bmi","age","insulin"]],
-            "Drifted Mean": [round(drifted_df[c].mean(),1) for c in ["glucose","blood_pressure","bmi","age","insulin"]],
-        })
-        compare["Change"] = compare.apply(
-            lambda r: f"+{round(r['Drifted Mean']-r['Stable Mean'],1)}"
-            if r["Drifted Mean"] >= r["Stable Mean"]
-            else str(round(r["Drifted Mean"]-r["Stable Mean"],1)), axis=1)
-        st.dataframe(compare, use_container_width=True)
-        st.dataframe(df_health.head())
-
-        target_col_h = scenario["target"]
-        st.info(f"Monitoring **{target_col_h}** for patient population drift.")
+        stable_df = pd.DataFrame({"glucose": np.random.normal(scen["stable"][0], scen["stable"][1], n_stable), "outcome": np.random.choice([0,1], n_stable)})
+        drifted_df = pd.DataFrame({"glucose": np.random.normal(scen["drifted"][0], scen["drifted"][1], n_drifted), "outcome": np.random.choice([0,1], n_drifted)})
+        df_health = pd.concat([stable_df, drifted_df], ignore_index=True)
 
         with st.expander("Manual override (optional)"):
-            st.caption("Leave at 0 for auto-calibration.")
-            ho1, ho2 = st.columns(2)
-            with ho1:
-                hov_a = st.number_input("Alpha",  0.0,1.0,0.0,0.01,key="ha")
-                hov_b = st.number_input("Beta",   0.0,1.0,0.0,0.01,key="hb")
-            with ho2:
-                hov_g = st.number_input("Gamma",  0.0,1.0,0.0,0.01,key="hg")
-                hov_l = st.number_input("Lambda", 0.0,1.0,0.0,0.01,key="hl")
-            hov_t = st.number_input("Threshold δ",0.0,10.0,0.0,0.01,key="ht")
+            h_ov_a = st.number_input("Alpha", 0.0,1.0,0.0, key="h_ov_a")
+            h_ov_b = st.number_input("Beta",  0.0,1.0,0.0, key="h_ov_b")
+            h_ov_g = st.number_input("Gamma", 0.0,1.0,0.0, key="h_ov_g")
+            h_ov_l = st.number_input("Lambda",0.0,1.0,0.0, key="h_ov_l")
+            h_ov_t = st.number_input("Threshold δ",0.0,10.0,0.0, key="h_ov_t")
 
-        # KEY FIX: baseline_override=n_stable ensures only stable patients
-        # go into the baseline — no drifted data leaks in
-        run_hdsm(
-            df=df_health,
-            target_col=target_col_h,
-            monitor_mode="Feature value",
-            feature_to_monitor=target_col_h,
-            target_is_classification=False,
-            ov_alpha=hov_a, ov_beta=hov_b,
-            ov_gamma=hov_g, ov_lam=hov_l, ov_thresh=hov_t,
-            baseline_override=n_stable,
-        )
-
+        run_hdsm(df=df_health, target_col="outcome", monitor_mode="Feature value",
+                 feature_to_monitor=scen["target"], target_is_classification=True,
+                 ov_alpha=h_ov_a, ov_beta=h_ov_b, ov_gamma=h_ov_g, ov_lam=h_ov_l, ov_thresh=h_ov_t,
+                 baseline_override=n_stable)
 
 # =========================================================
 # TAB 4 — CSV / EXCEL UPLOAD
 # =========================================================
-
 with tab4:
     st.markdown("### Upload Your Own Dataset")
-
-    uploaded_file = st.file_uploader(
-        "Upload Dataset (CSV or Excel)",
-        type=["csv","xlsx","xls"]
-    )
+    uploaded_file = st.file_uploader("Upload Dataset (CSV or Excel)", type=["csv","xlsx","xls"], key="uploader")
 
     if uploaded_file is not None:
-        fname = uploaded_file.name
-        if fname.endswith((".xlsx",".xls")):
-            df = pd.read_excel(uploaded_file)
-            st.caption("Excel file loaded successfully.")
-        else:
-            try:
-                df = pd.read_csv(uploaded_file)
-                if df.shape[1] == 1:
-                    uploaded_file.seek(0)
-                    df = pd.read_csv(uploaded_file, sep=";", decimal=",")
-                    st.caption("Semicolon-separated file detected and loaded correctly.")
-            except Exception:
-                uploaded_file.seek(0)
-                df = pd.read_csv(uploaded_file, sep=";", decimal=",")
-
-        df = df.dropna(how="all")
-
-        if len(df) > 15_000:
-            st.warning(f"Large dataset: {len(df):,} rows. Using first 15,000 rows.")
-            df = df.head(15_000)
-
-        st.subheader("Dataset Preview")
+        df = pd.read_excel(uploaded_file) if uploaded_file.name.endswith((".xlsx",".xls")) else pd.read_csv(uploaded_file)
         st.dataframe(df.head())
-        c1, c2 = st.columns(2)
-        c1.metric("Rows", df.shape[0])
-        c2.metric("Columns", df.shape[1])
 
-        cols         = df.columns.tolist()
-        target_col   = st.selectbox("Select Target Column", cols)
-        monitor_mode = st.selectbox("Monitoring Mode", ["Model confidence","Feature value"])
+        cols = df.columns.tolist()
+        target_col = st.selectbox("Select Target Column", cols, key="csv_target")
+        monitor_mode = st.selectbox("Monitoring Mode", ["Model confidence","Feature value"], key="csv_mode")
 
         feature_to_monitor = None
         if monitor_mode == "Feature value":
-            numeric_features = [c for c in cols
-                                if c != target_col and pd.api.types.is_numeric_dtype(df[c])]
-            if not numeric_features:
-                st.error("No numeric features. Switch to Model confidence mode.")
-            else:
-                feature_to_monitor = st.selectbox("Select Feature to Monitor", numeric_features)
-
-        y_full = df[target_col]
-        if pd.api.types.is_numeric_dtype(y_full) and y_full.nunique() > 10:
-            target_is_classification = False
-            st.info("Regression target detected.")
-        else:
-            target_is_classification = True
-            st.info("Classification target detected.")
-
-        with st.expander("Manual override (optional)"):
-            st.caption("Leave at 0 for auto-calibration.")
-            oc1, oc2 = st.columns(2)
-            with oc1:
-                ov_alpha = st.number_input("Alpha",  0.0,1.0,0.0,0.01,key="ca")
-                ov_beta  = st.number_input("Beta",   0.0,1.0,0.0,0.01,key="cb")
-            with oc2:
-                ov_gamma = st.number_input("Gamma",  0.0,1.0,0.0,0.01,key="cg")
-                ov_lam   = st.number_input("Lambda", 0.0,1.0,0.0,0.01,key="cl")
-            ov_thresh = st.number_input("Threshold δ",0.0,10.0,0.0,0.01,key="ct")
+            num_cols = [c for c in cols if c != target_col and pd.api.types.is_numeric_dtype(df[c])]
+            feature_to_monitor = st.selectbox("Select Feature to Monitor", num_cols, key="csv_feat")
 
         if st.button("Run Drift Detection", key="btn_csv"):
-            if monitor_mode == "Feature value" and feature_to_monitor is None:
-                st.error("Select a feature to monitor.")
-            else:
-                run_hdsm(
-                    df=df, target_col=target_col,
-                    monitor_mode=monitor_mode,
-                    feature_to_monitor=feature_to_monitor,
-                    target_is_classification=target_is_classification,
-                    ov_alpha=ov_alpha, ov_beta=ov_beta,
-                    ov_gamma=ov_gamma, ov_lam=ov_lam, ov_thresh=ov_thresh,
-                )
+            run_hdsm(df=df, target_col=target_col, monitor_mode=monitor_mode,
+                     feature_to_monitor=feature_to_monitor, target_is_classification=True,
+                     ov_alpha=0.0, ov_beta=0.0, ov_gamma=0.0, ov_lam=0.0, ov_thresh=0.0)
